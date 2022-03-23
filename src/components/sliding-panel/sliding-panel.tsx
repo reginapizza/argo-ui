@@ -1,5 +1,6 @@
 import * as classNames from 'classnames';
 import * as React from 'react';
+import { Key, KeybindingProvider, KeybindingContext } from '../../../v2';
 
 export interface SlidingPanelProps extends React.Props<any> {
     isShown?: boolean;
@@ -18,49 +19,70 @@ require('./sliding-panel.scss');
 
 export const SlidingPanel = (props: SlidingPanelProps) => {
 
-    const handler = (e: any) => {
-        if (e.key === 'Escape' && props.onClose) {
-            props.onClose();
-        }
+    // const handler = (e: any) => {
+    //     if (e.key === 'Escape' && props.onClose) {
+    //         props.onClose();
+    //     }
+    // };
+    // React.useEffect(() => {
+    //     if (props.closeOnEscape) {
+    //         document.addEventListener('keydown', handler);
+    //         return () => document.removeEventListener('keydown', handler);
+    //     }
+    // }, [props.closeOnEscape]);
+
+    const {useKeybinding} = React.useContext(KeybindingContext);
+    
+    const target = {
+        combo: false,
     };
-    React.useEffect(() => {
-        if (props.closeOnEscape) {
-            document.addEventListener('keydown', handler);
-            return () => document.removeEventListener('keydown', handler);
-        }
-    }, [props.closeOnEscape]);
+    
+    useKeybinding({
+        keys: Key.ESCAPE,
+        action: () => {
+            if (props.onClose && props.closeOnEscape) {
+                props.onClose();
+                return true;
+            }
+            return false;
+        },
+        ...target,
+    });
+
 
     return(
-       <div className={classNames('sliding-panel', {
-        'sliding-panel--has-header': !!props.header,
-        'sliding-panel--has-footer': !!props.footer,
-        'sliding-panel--is-narrow': props.isNarrow,
-        'sliding-panel--is-middle': props.isMiddle,
-        'sliding-panel--opened': props.isShown,
-        'sliding-panel--no-padding': props.hasNoPadding,
-        'sliding-panel--off-canvas': props.offCanvas,
-    })}>
-        <div className='sliding-panel__wrapper'>
-            <button className='sliding-panel__close' aria-hidden='true' onClick={() => props.onClose && props.onClose()}>
-                <span>
-                    <i className='argo-icon-close' aria-hidden='true'/>
-                </span>
-            </button>
-            {props.header && (
-                <div className={classNames('sliding-panel__header', {'sliding-panel__header--close-btn-right-padding': props.hasCloseButton})}>
-                    {props.header}
+        <KeybindingProvider>
+        <div className={classNames('sliding-panel', {
+            'sliding-panel--has-header': !!props.header,
+            'sliding-panel--has-footer': !!props.footer,
+            'sliding-panel--is-narrow': props.isNarrow,
+            'sliding-panel--is-middle': props.isMiddle,
+            'sliding-panel--opened': props.isShown,
+            'sliding-panel--no-padding': props.hasNoPadding,
+            'sliding-panel--off-canvas': props.offCanvas,
+        })}>
+            <div className='sliding-panel__wrapper'>
+                <button className='sliding-panel__close' aria-hidden='true' onClick={() => props.onClose && props.onClose()}>
+                    <span>
+                        <i className='argo-icon-close' aria-hidden='true'/>
+                    </span>
+                </button>
+                {props.header && (
+                    <div className={classNames('sliding-panel__header', {'sliding-panel__header--close-btn-right-padding': props.hasCloseButton})}>
+                        {props.header}
+                    </div>
+                )}
+                <div className='sliding-panel__body'>
+                    {props.children}
                 </div>
-            )}
-            <div className='sliding-panel__body'>
-                {props.children}
+                {props.footer && (
+                    <div className='sliding-panel__footer'>
+                        {props.footer}
+                    </div>
+                )}
             </div>
-            {props.footer && (
-                <div className='sliding-panel__footer'>
-                    {props.footer}
-                </div>
-            )}
+            <div className='sliding-panel__outside' onClick={() => props.onClose && props.onClose()}/>
         </div>
-        <div className='sliding-panel__outside' onClick={() => props.onClose && props.onClose()}/>
-    </div>
+    </KeybindingProvider>
     );
 };
